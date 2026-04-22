@@ -6,6 +6,8 @@
 
 <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 
+<script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+
 <style>
 body {
   margin: 0;
@@ -18,22 +20,19 @@ body {
   text-align: center;
 }
 
-/* CONTAINER */
 .container {
   margin-top: 40px;
 }
 
-/* 🖼️ LOGO (SEM TAMANHO FORÇADO) */
 .logo {
   margin-bottom: 20px;
 }
 
 .logo img {
-  /* IMPORTANTE: sem width/height → tamanho real da imagem */
   display: inline-block;
 }
 
-/* 🪟 WINDOW */
+/* WINDOW */
 .window {
   width: 580px;
   height: 750px;
@@ -49,7 +48,6 @@ body {
   overflow: hidden;
 }
 
-/* HEADER */
 .window-header {
   background: #d0d0d0;
   color: #222;
@@ -58,7 +56,6 @@ body {
   border-bottom: 1px solid #999;
 }
 
-/* BODY */
 .window-body {
   flex: 1;
   padding: 10px;
@@ -93,13 +90,12 @@ body {
   background: #e0e0e0;
 }
 
-/* TEXTO FIXO */
 .ql-editor {
   font-family: Verdana, Arial, sans-serif !important;
   font-size: 11px !important;
 }
 
-/* BOTÕES */
+/* BUTTONS */
 .btn-row {
   display: flex;
   gap: 6px;
@@ -107,10 +103,6 @@ body {
 }
 
 .icon-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
   padding: 5px 10px;
   border: 1px solid #888;
   background: #fff;
@@ -121,17 +113,11 @@ body {
   border-radius: 6px;
 }
 
-.icon-btn svg {
-  width: 14px;
-  height: 14px;
-  color: #444;
-}
-
 .icon-btn:hover {
   background: #eaeaea;
 }
 
-/* POPUP */
+/* IMAGE POPUP */
 .modal {
   display: none;
   position: absolute;
@@ -157,16 +143,30 @@ body {
   margin-bottom: 8px;
 }
 
-.modal button {
-  padding: 6px 10px;
-  border: 1px solid #888;
-  background: #eee;
-  cursor: pointer;
-  border-radius: 6px;
+/* 🌈 COLOR POPUP */
+#colorPopup {
+  display: none;
+  position: absolute;
+  top: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 10px;
+
+  box-shadow: 0 6px 0 #666;
+  z-index: 999;
 }
 
-.modal button:hover {
-  background: #ddd;
+#hexInput {
+  margin-top: 8px;
+  width: 120px;
+  padding: 5px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  text-align: center;
 }
 
 /* FOOTER */
@@ -185,7 +185,6 @@ body {
 
 <div class="container">
 
-  <!-- 🖼️ LOGO (TAMANHO REAL) -->
   <div class="logo">
     <img id="siteLogo" src="https://i.imgur.com/RWc63WZ.png">
   </div>
@@ -198,32 +197,27 @@ body {
 
     <div class="window-body">
 
-      <!-- BOTÕES -->
       <div class="btn-row">
-
-        <button class="icon-btn" onclick="openModal()">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 11.5l2.5 3 3.5-4.5L19 17H5l3.5-5.5z"/>
-          </svg>
-          Imagem
-        </button>
-
-        <button class="icon-btn" onclick="exportHTML()">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 3v10l3-3 1.4 1.4L12 16.8 7.6 11.4 9 10l3 3V3zM5 19h14v2H5z"/>
-          </svg>
-          HTML
-        </button>
-
+        <button class="icon-btn" onclick="openModal()">🖼 Imagem</button>
+        <button class="icon-btn" onclick="exportHTML()">📥 HTML</button>
+        <button class="icon-btn" onclick="toggleColorPicker()">🎨 Cor</button>
       </div>
 
       <div id="editor"></div>
 
-      <!-- POPUP -->
+      <!-- IMAGE -->
       <div class="modal" id="imgModal">
         <input type="text" id="imageURL" placeholder="URL da imagem">
         <button onclick="insertImage()">Inserir</button>
         <button onclick="closeModal()">Fechar</button>
+      </div>
+
+      <!-- 🌈 COLOR -->
+      <div id="colorPopup">
+        <div id="colorWheel"></div>
+
+        <!-- HEX INPUT -->
+        <input id="hexInput" type="text" placeholder="#000000">
       </div>
 
     </div>
@@ -254,16 +248,10 @@ var quill = new Quill('#editor', {
   }
 });
 
-/* VERDANA FIXO */
 quill.root.style.fontFamily = "Verdana";
 quill.root.style.fontSize = "11px";
 
-/* LOGO */
-function updateLogo(url) {
-  document.getElementById("siteLogo").src = url;
-}
-
-/* POPUP */
+/* IMAGE */
 function openModal() {
   document.getElementById("imgModal").style.display = "block";
 }
@@ -272,7 +260,6 @@ function closeModal() {
   document.getElementById("imgModal").style.display = "none";
 }
 
-/* IMAGEM */
 function insertImage() {
   const url = document.getElementById("imageURL").value;
   if (url) {
@@ -289,7 +276,58 @@ function exportHTML() {
   alert("HTML copiado!");
 }
 
+/* 🌈 COLOR WHEEL + HEX */
+let colorOpen = false;
+
+var colorPicker = new iro.ColorPicker("#colorWheel", {
+  width: 150,
+  color: "#4da6ff"
+});
+
+function applyColor(hex) {
+  quill.format("color", hex);
+}
+
+/* roda -> input */
+colorPicker.on("color:change", function(color) {
+  document.getElementById("hexInput").value = color.hexString;
+  applyColor(color.hexString);
+});
+
+/* input -> roda */
+document.getElementById("hexInput").addEventListener("input", function(e) {
+  const value = e.target.value;
+
+  if(/^#([0-9A-F]{3}){1,2}$/i.test(value)) {
+    colorPicker.color.set(value);
+    applyColor(value);
+  }
+});
+
+function toggleColorPicker() {
+  const popup = document.getElementById("colorPopup");
+
+  colorOpen = !colorOpen;
+  popup.style.display = colorOpen ? "block" : "none";
+
+  if (colorOpen) {
+    colorPicker.color.set("#4da6ff");
+    document.getElementById("hexInput").value = "#4da6ff";
+  }
+}
+
+/* click fora */
+document.addEventListener("click", function(e) {
+  const popup = document.getElementById("colorPopup");
+
+  if (!popup.contains(e.target) && !e.target.closest(".icon-btn")) {
+    popup.style.display = "none";
+    colorOpen = false;
+  }
+});
+
 </script>
 
 </body>
+</html>
 </html>
