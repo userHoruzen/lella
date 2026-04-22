@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Lella - Editor de Notícias</title>
+
+<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  font-family: Verdana, Arial, sans-serif;
+
+  background-image: url("https://i.imgur.com/yOSzr74.png");
+  background-repeat: repeat;
+  background-color: #d9d9d9;
+
+  text-align: center;
+}
+
+/* CONTAINER */
+.container {
+  margin-top: 40px;
+}
+
+/* 🖼️ LOGO (SEM TAMANHO FORÇADO) */
+.logo {
+  margin-bottom: 20px;
+}
+
+.logo img {
+  /* IMPORTANTE: sem width/height → tamanho real da imagem */
+  display: inline-block;
+}
+
+/* 🪟 WINDOW */
+.window {
+  width: 583px;
+  height: 800px;
+  margin: auto;
+
+  background: #e6e6e6;
+  border: 1px solid #888;
+  border-radius: 14px;
+
+  box-shadow: 0 4px 0 #666;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER */
+.window-header {
+  background: #d0d0d0;
+  color: #222;
+  padding: 10px;
+  font-weight: bold;
+  border-bottom: 1px solid #999;
+}
+
+/* BODY */
+.window-body {
+  flex: 1;
+  padding: 10px;
+  background: #ededed;
+  display: flex;
+  flex-direction: column;
+}
+
+/* EDITOR */
+#editor {
+  height: 580px;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 8px;
+}
+
+/* TOOLBAR */
+.ql-toolbar {
+  border: 1px solid #999 !important;
+  background: #f2f2f2;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.ql-toolbar button {
+  border: 1px solid #aaa !important;
+  background: #fafafa;
+  margin: 2px;
+}
+
+.ql-toolbar button:hover {
+  background: #e0e0e0;
+}
+
+/* TEXTO FIXO */
+.ql-editor {
+  font-family: Verdana, Arial, sans-serif !important;
+  font-size: 11px !important;
+}
+
+/* BOTÕES */
+.btn-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 5px 10px;
+  border: 1px solid #888;
+  background: #fff;
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+.icon-btn svg {
+  width: 14px;
+  height: 14px;
+  color: #444;
+}
+
+.icon-btn:hover {
+  background: #eaeaea;
+}
+
+/* POPUP */
+.modal {
+  display: none;
+  position: absolute;
+  top: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 6px 0 #666;
+
+  padding: 10px;
+  z-index: 999;
+}
+
+.modal input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.modal button {
+  padding: 6px 10px;
+  border: 1px solid #888;
+  background: #eee;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.modal button:hover {
+  background: #ddd;
+}
+
+/* FOOTER */
+.footer {
+  background: #fff;
+  border-top: 1px solid #aaa;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- 🖼️ LOGO (TAMANHO REAL) -->
+  <div class="logo">
+    <img id="siteLogo" src="https://i.imgur.com/RWc63WZ.png">
+  </div>
+
+  <div class="window">
+
+    <div class="window-header">
+      Lella - Editor de Notícias
+    </div>
+
+    <div class="window-body">
+
+      <!-- BOTÕES -->
+      <div class="btn-row">
+
+        <button class="icon-btn" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 11.5l2.5 3 3.5-4.5L19 17H5l3.5-5.5z"/>
+          </svg>
+          Imagem
+        </button>
+
+        <button class="icon-btn" onclick="exportHTML()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3v10l3-3 1.4 1.4L12 16.8 7.6 11.4 9 10l3 3V3zM5 19h14v2H5z"/>
+          </svg>
+          HTML
+        </button>
+
+      </div>
+
+      <div id="editor"></div>
+
+      <!-- POPUP -->
+      <div class="modal" id="imgModal">
+        <input type="text" id="imageURL" placeholder="URL da imagem">
+        <button onclick="insertImage()">Inserir</button>
+        <button onclick="closeModal()">Fechar</button>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      Desenvolvido por Horus | 2026
+    </div>
+
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+
+<script>
+
+var quill = new Quill('#editor', {
+  theme: 'snow',
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['link'],
+      ['clean']
+    ]
+  }
+});
+
+/* VERDANA FIXO */
+quill.root.style.fontFamily = "Verdana";
+quill.root.style.fontSize = "11px";
+
+/* LOGO */
+function updateLogo(url) {
+  document.getElementById("siteLogo").src = url;
+}
+
+/* POPUP */
+function openModal() {
+  document.getElementById("imgModal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("imgModal").style.display = "none";
+}
+
+/* IMAGEM */
+function insertImage() {
+  const url = document.getElementById("imageURL").value;
+  if (url) {
+    quill.insertEmbed(quill.getSelection().index, 'image', url);
+    document.getElementById("imageURL").value = "";
+    closeModal();
+  }
+}
+
+/* EXPORT */
+function exportHTML() {
+  const html = quill.root.innerHTML;
+  navigator.clipboard.writeText(html);
+  alert("HTML copiado!");
+}
+
+</script>
+
+</body>
+</html>
